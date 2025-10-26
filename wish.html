@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday — Miss Madame</title>
+<style>
+  :root{
+    --royal:#0a2b5a;
+    --royal-2:#153f7a;
+    --gold:#ffd166;
+    --white: #ffffff;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at 10% 10%, #08172b 0%, var(--royal) 30%, var(--royal-2) 100%);
+    color:var(--white);
+    overflow:hidden;
+  }
+
+  .container{
+    position:relative;
+    z-index:3;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:2rem;
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .popup{
+    pointer-events:auto;
+    background: rgba(255,255,255,0.05);
+    border-radius:16px;
+    padding:2.2rem 2.6rem;
+    box-shadow: 0 10px 40px rgba(4,10,20,0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    transform:translateY(60px) scale(0.9);
+    opacity:0;
+    transition: transform 700ms cubic-bezier(.16,1,.3,1), opacity 600ms;
+    max-width:760px;
+    width:95%;
+  }
+
+  .popup.show{
+    transform:translateY(0) scale(1);
+    opacity:1;
+  }
+
+  h1{
+    margin:0;
+    font-size: clamp(22px, 4.8vw, 48px);
+    color:var(--gold);
+    text-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  }
+
+  .subtitle{
+    margin-top:10px;
+    font-size: clamp(14px, 2.2vw, 18px);
+    color: #eaf2ff;
+  }
+
+  .coffee-msg{
+    margin-top:14px;
+    font-size: clamp(15px, 2.3vw, 20px);
+    color:#ffd166;
+    font-style:italic;
+  }
+
+  .controls{
+    margin-top:18px;
+  }
+
+  .play-btn{
+    background:transparent;
+    border:2px solid var(--gold);
+    color:var(--gold);
+    padding:10px 16px;
+    border-radius:999px;
+    font-weight:600;
+    cursor:pointer;
+    transition: transform .12s ease;
+  }
+  .play-btn:active{ transform: scale(.98) }
+  .play-btn.playing{ background:rgba(255,209,102,0.15); }
+
+  footer{
+    position:absolute;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:14px;
+    color:rgba(255,255,255,0.92);
+  }
+
+  audio{ display:none; }
+
+  canvas#fireworks,canvas#stars{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    z-index:1;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<canvas id="fireworks"></canvas>
+
+<div class="container">
+  <div id="popup" class="popup">
+    <h1>🎂 Happy Birthday — Miss Madame!</h1>
+    <div class="subtitle">Wishing you a day full of wonder, laughter and sparkle ✨</div>
+    <div class="coffee-msg">Wishing you a very happy, happening and wonderful birthday my little coffee bean ☕💖</div>
+    <div class="controls">
+      <button id="playBtn" class="play-btn">Play Voice Note</button>
+    </div>
+  </div>
+</div>
+
+<footer>With love, Hamster</footer>
+
+<audio id="voice" preload="metadata">
+  <source src="WhatsApp Audio 2025-10-26 at 22.00.01_13e07ccc.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+window.addEventListener('load', ()=>{
+  setTimeout(()=> document.getElementById('popup').classList.add('show'), 200);
+});
+
+const audio = document.getElementById('voice');
+const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click', ()=>{
+  if(audio.paused){
+    audio.play();
+    playBtn.classList.add('playing');
+    playBtn.textContent = 'Pause Voice Note';
+  } else {
+    audio.pause();
+    playBtn.classList.remove('playing');
+    playBtn.textContent = 'Play Voice Note';
+  }
+});
+audio.addEventListener('ended', ()=>{
+  playBtn.classList.remove('playing');
+  playBtn.textContent = 'Play Voice Note';
+});
+
+/* --- Fireworks animation --- */
+(function(){
+  const canvas=document.getElementById('fireworks');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+  }
+  resize(); window.addEventListener('resize',resize);
+  const particles=[];
+  function Firework(x,y,color){
+    for(let i=0;i<50;i++){
+      const a=Math.random()*2*Math.PI;
+      const s=Math.random()*4+1;
+      particles.push({
+        x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+        life:80,color:color
+      });
+    }
+  }
+  function loop(){
+    ctx.fillStyle="rgba(10,20,50,0.2)";
+    ctx.fillRect(0,0,W,H);
+    if(Math.random()<0.05)
+      Firework(Math.random()*W,Math.random()*H*0.7,`hsl(${Math.random()*360},100%,60%)`);
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.02; p.life--;
+      if(p.life<=0) particles.splice(i,1);
+      ctx.beginPath();
+      ctx.fillStyle=p.color;
+      ctx.globalAlpha=p.life/80;
+      ctx.arc(p.x,p.y,2,0,2*Math.PI);
+      ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
